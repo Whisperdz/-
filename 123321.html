@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交通事故事件分析仪表盘</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0FC6C2',
+                        accent: '#FF7D00',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        info: '#86909C',
+                        light: '#F2F3F5',
+                        dark: '#1D2129',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        'card-hover': '0 10px 30px rgba(0, 0, 0, 0.12)',
+                    }
+                },
+            }
+        }
+    </script>
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-transition {
+                transition: all 0.3s ease;
+            }
+            .text-balance {
+                text-wrap: balance;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-dark">
+    <!-- 顶部导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fa fa-car text-primary text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-primary">交通事故事件分析</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#overview" class="text-gray-600 hover:text-primary transition-colors">概览</a>
+                    <a href="#severity" class="text-gray-600 hover:text-primary transition-colors">严重程度分析</a>
+                    <a href="#features" class="text-gray-600 hover:text-primary transition-colors">特征重要性</a>
+                    <a href="#clustering" class="text-gray-600 hover:text-primary transition-colors">聚类分析</a>
+                    <a href="#conclusion" class="text-gray-600 hover:text-primary transition-colors">结论</a>
+                </div>
+                <div class="md:hidden">
+                    <button type="button" class="text-gray-600 hover:text-primary" id="mobile-menu-button">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white shadow-md absolute w-full" id="mobile-menu">
+            <div class="px-4 py-2 space-y-1">
+                <a href="#overview" class="block py-2 text-gray-600 hover:text-primary">概览</a>
+                <a href="#severity" class="block py-2 text-gray-600 hover:text-primary">严重程度分析</a>
+                <a href="#features" class="block py-2 text-gray-600 hover:text-primary">特征重要性</a>
+                <a href="#clustering" class="block py-2 text-gray-600 hover:text-primary">聚类分析</a>
+                <a href="#conclusion" class="block py-2 text-gray-600 hover:text-primary">结论</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <!-- 概览部分 -->
+        <section id="overview" class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-4">交通事故监测系统</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-balance">本仪表盘展示了交通事故事件的详细分析结果，包括事故严重程度预测、关键特征分析以及事故聚类情况，旨在帮助交通管理部门更好地理解事故模式并制定预防策略。</p>
+            </div>
+
+            <!-- 数据卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white rounded-xl shadow-card p-6 card-transition hover:shadow-card-hover transform hover:-translate-y-1">
+                    <div class="flex items-center">
+                        <div class="bg-primary/10 p-3 rounded-lg mr-4">
+                            <i class="fa fa-file-text-o text-primary text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm font-medium">总记录数</h3>
+                            <p class="text-2xl font-bold">10,245</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">较上月</span>
+                            <span class="text-success text-xs flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 12.5%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6 card-transition hover:shadow-card-hover transform hover:-translate-y-1">
+                    <div class="flex items-center">
+                        <div class="bg-accent/10 p-3 rounded-lg mr-4">
+                            <i class="fa fa-exclamation-triangle text-accent text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm font-medium">严重事故比例</h3>
+                            <p class="text-2xl font-bold">23.8%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">较上月</span>
+                            <span class="text-danger text-xs flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 3.2%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6 card-transition hover:shadow-card-hover transform hover:-translate-y-1">
+                    <div class="flex items-center">
+                        <div class="bg-secondary/10 p-3 rounded-lg mr-4">
+                            <i class="fa fa-map-marker text-secondary text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm font-medium">事故高发区域</h3>
+                            <p class="text-xl font-bold">城市中心区</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">事故占比</span>
+                            <span class="text-primary text-xs">42.3%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6 card-transition hover:shadow-card-hover transform hover:-translate-y-1">
+                    <div class="flex items-center">
+                        <div class="bg-success/10 p-3 rounded-lg mr-4">
+                            <i class="fa fa-line-chart text-success text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm font-medium">模型准确率</h3>
+                            <p class="text-2xl font-bold">86.7%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">模型类型</span>
+                            <span class="text-primary text-xs">随机森林</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据质量和模型评估 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-database text-primary mr-2"></i> 数据质量分析
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">缺失值处理率</span>
+                                <span class="text-sm font-medium">99.8%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 99.8%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">异常值修正率</span>
+                                <span class="text-sm font-medium">96.3%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 96.3%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">特征完整性</span>
+                                <span class="text-sm font-medium">98.5%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 98.5%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">数据一致性</span>
+                                <span class="text-sm font-medium">97.2%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-success h-2 rounded-full" style="width: 97.2%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-check-circle text-primary mr-2"></i> 模型评估指标
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm text-gray-500 mb-1">多分类模型</h4>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-2xl font-bold">86.7%</p>
+                                    <p class="text-xs text-gray-500">准确率</p>
+                                </div>
+                                <div class="text-success text-3xl">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm text-gray-500 mb-1">二分类模型</h4>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-2xl font-bold">92.3%</p>
+                                    <p class="text-xs text-gray-500">AUC值</p>
+                                </div>
+                                <div class="text-success text-3xl">
+                                    <i class="fa fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm text-gray-500 mb-1">F1分数</h4>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-2xl font-bold">84.5%</p>
+                                    <p class="text-xs text-gray-500">多分类</p>
+                                </div>
+                                <div class="text-success text-3xl">
+                                    <i class="fa fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm text-gray-500 mb-1">PR曲线面积</h4>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-2xl font-bold">88.7%</p>
+                                    <p class="text-xs text-gray-500">二分类</p>
+                                </div>
+                                <div class="text-success text-3xl">
+                                    <i class="fa fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 严重程度分析 -->
+        <section id="severity" class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-dark mb-4">事故严重程度分析</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-balance">分析不同严重程度事故的分布情况，有助于识别高风险场景和制定针对性的预防措施。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 事故严重程度分布饼图 -->
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-pie-chart text-primary mr-2"></i> 事故严重程度分布
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="severityDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 事故时间分布 -->
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-clock-o text-primary mr-2"></i> 事故时间分布
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="timeDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 事故严重程度与特征关系 -->
+            <div class="bg-white rounded-xl shadow-card p-6 mt-8">
+                <h3 class="text-lg font-semibold mb-6 flex items-center">
+                    <i class="fa fa-link text-primary mr-2"></i> 事故严重程度与关键特征的关系
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">天气条件</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">晴朗</span>
+                                    <span class="text-xs font-medium">32%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 32%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">小雨</span>
+                                    <span class="text-xs font-medium">28%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 28%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">大雾</span>
+                                    <span class="text-xs font-medium">18%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 18%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">大雪</span>
+                                    <span class="text-xs font-medium">14%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: 14%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">其他</span>
+                                    <span class="text-xs font-medium">8%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-warning h-2 rounded-full" style="width: 8%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">道路类型</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">高速公路</span>
+                                    <span class="text-xs font-medium">22%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 22%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">城市主干道</span>
+                                    <span class="text-xs font-medium">38%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 38%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">城市次干道</span>
+                                    <span class="text-xs font-medium">25%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 25%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">乡村道路</span>
+                                    <span class="text-xs font-medium">15%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">车辆类型</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">小汽车</span>
+                                    <span class="text-xs font-medium">62%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 62%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">货车</span>
+                                    <span class="text-xs font-medium">18%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 18%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">公交车</span>
+                                    <span class="text-xs font-medium">10%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 10%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">摩托车</span>
+                                    <span class="text-xs font-medium">8%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: 8%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs">其他</span>
+                                    <span class="text-xs font-medium">2%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-warning h-2 rounded-full" style="width: 2%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 特征重要性分析 -->
+        <section id="features" class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-dark mb-4">特征重要性分析</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-balance">识别对事故严重程度预测最有影响的特征，有助于理解事故成因并制定针对性的安全策略。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 多分类模型特征重要性 -->
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-tasks text-primary mr-2"></i> 多分类模型特征重要性
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="multiclassFeatureImportanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 二分类模型特征重要性 -->
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-tasks text-secondary mr-2"></i> 二分类模型特征重要性
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="binaryFeatureImportanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 特征相关性热图 -->
+            <div class="bg-white rounded-xl shadow-card p-6 mt-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fa fa-table text-primary mr-2"></i> 关键特征相关性分析
+                </h3>
+                <div class="h-96 overflow-hidden">
+                    <div class="grid grid-cols-8 gap-1 text-center text-xs font-medium">
+                        <!-- 这里使用表格模拟热图，实际项目中可以使用Chart.js或D3.js实现 -->
+                        <div class="col-span-1"></div>
+                        <div class="col-span-1 bg-gray-100 p-2">车辆速度</div>
+                        <div class="col-span-1 bg-gray-100 p-2">天气状况</div>
+                        <div class="col-span-1 bg-gray-100 p-2">道路类型</div>
+                        <div class="col-span-1 bg-gray-100 p-2">时间因素</div>
+                        <div class="col-span-1 bg-gray-100 p-2">交通密度</div>
+                        <div class="col-span-1 bg-gray-100 p-2">车辆类型</div>
+                        <div class="col-span-1 bg-gray-100 p-2">事故严重度</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">车辆速度</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.32</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.45</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.28</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.52</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.31</div>
+                        <div class="col-span-1 bg-red-500 p-2">0.78</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">天气状况</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.32</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.21</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.38</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.24</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.19</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.46</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">道路类型</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.45</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.21</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.33</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.41</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.27</div>
+                        <div class="col-span-1 bg-red-400 p-2">0.63</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">时间因素</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.28</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.38</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.33</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.39</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.22</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.49</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">交通密度</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.52</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.24</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.41</div>
+                        <div class="col-span-1 bg-red-200 p-2">0.39</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.26</div>
+                        <div class="col-span-1 bg-red-400 p-2">0.68</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">车辆类型</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.31</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.19</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.27</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.22</div>
+                        <div class="col-span-1 bg-red-100 p-2">0.26</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.51</div>
+
+                        <div class="col-span-1 bg-gray-100 p-2">事故严重度</div>
+                        <div class="col-span-1 bg-red-500 p-2">0.78</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.46</div>
+                        <div class="col-span-1 bg-red-400 p-2">0.63</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.49</div>
+                        <div class="col-span-1 bg-red-400 p-2">0.68</div>
+                        <div class="col-span-1 bg-red-300 p-2">0.51</div>
+                        <div class="col-span-1 bg-gray-100 p-2">1.00</div>
+                    </div>
+                    <div class="mt-4 flex items-center">
+                        <div class="flex-1">
+                            <div class="h-3 bg-gradient-to-r from-gray-100 to-red-500 rounded-full"></div>
+                        </div>
+                        <div class="ml-4 text-xs text-gray-500">相关性: 低 → 高</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 聚类分析 -->
+        <section id="clustering" class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-dark mb-4">聚类分析</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-balance">基于事故特征的聚类分析，帮助识别不同类型的事故模式，为预防策略提供依据。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 聚类分布 -->
+                <div class="bg-white rounded-xl shadow-card p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-pie-chart text-primary mr-2"></i> 聚类分布情况
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="clusterDistributionChart"></canvas>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                            <span class="text-sm">聚类 1: 城市高峰时段事故</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-secondary mr-2"></div>
+                            <span class="text-sm">聚类 2: 高速公路高速事故</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-accent mr-2"></div>
+                            <span class="text-sm">聚类 3: 恶劣天气事故</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 聚类散点图 -->
+                <div class="bg-white rounded-xl shadow-card p-6 lg:col-span-2">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa fa-map text-primary mr-2"></i> 聚类散点图 (PCA降维)
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="clusterScatterChart"></canvas>
+                    </div>
+                    <div class="mt-4 grid grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">聚类 1 特征</h4>
+                            <ul class="text-xs text-gray-600 space-y-1">
+                                <li>• 城市主干道</li>
+                                <li>• 早晚高峰时段</li>
+                                <li>• 中等速度碰撞</li>
+                                <li>• 多车连环追尾</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">聚类 2 特征</h4>
+                            <ul class="text-xs text-gray-600 space-y-1">
+                                <li>• 高速公路</li>
+                                <li>• 高速行驶</li>
+                                <li>• 恶劣天气较少</li>
+                                <li>• 单车事故比例高</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">聚类 3 特征</h4>
+                            <ul class="text-xs text-gray-600 space-y-1">
+                                <li>• 各种道路类型</li>
+                                <li>• 雨天/雾天</li>
+                                <li>• 能见度低</li>
+                                <li>• 刹车距离不足</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聚类中心分析 -->
+            <div class="bg-white rounded-xl shadow-card p-6 mt-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fa fa-database text-primary mr-2"></i> 聚类中心特征分析
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">特征</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">聚类 1 (城市高峰)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">聚类 2 (高速事故)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">聚类 3 (恶劣天气)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">平均车速</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45 km/h</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">95 km/h</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">55 km/h</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">道路类型 (主干道占比)</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">78%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">22%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">高峰时段占比</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">85%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">32%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">41%</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">恶劣天气占比</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">15%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">68%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">多车事故比例</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">62%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">28%</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">43%</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">平均伤亡人数</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1.2</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2.8</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1.5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结论与建议 -->
+        <section id="conclusion" class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-[clamp(1.5rem,2.5vw,2rem)] font-bold text-dark mb-4">结论与建议</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto text-balance">基于数据分析结果，我们提出以下结论和建议，帮助交通管理部门制定更有效的事故预防策略。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl shadow-card p-6 border-t-4 border-primary">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary/10 p-3 rounded-full mr-4">
+                            <i class="fa fa-lightbulb-o text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">关键结论</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>车辆速度是影响事故严重程度的最关键因素</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>城市中心区和高速公路是事故高发区域</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>早晚高峰时段事故发生率显著高于其他时段</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>恶劣天气条件下事故风险增加约46%</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>聚类分析识别出三种主要事故模式</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6 border-t-4 border-secondary">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-secondary/10 p-3 rounded-full mr-4">
+                            <i class="fa fa-shield text-secondary text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">预防策略</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fa fa-arrow-right text-secondary mt-1 mr-2"></i>
+                            <span>在事故高发路段设置智能限速和警示系统</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-arrow-right text-secondary mt-1 mr-2"></i>
+                            <span>高峰时段增加交通巡逻和疏导力度</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-arrow-right text-secondary mt-1 mr-2"></i>
+                            <span>恶劣天气条件下发布实时路况和安全提示</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-arrow-right text-secondary mt-1 mr-2"></i>
+                            <span>对不同类型道路设计针对性的安全措施</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-arrow-right text-secondary mt-1 mr-2"></i>
+                            <span>加强对高风险驾驶行为的执法力度</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card p-6 border-t-4 border-accent">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-accent/10 p-3 rounded-full mr-4">
+                            <i class="fa fa-line-chart text-accent text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">未来工作</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fa fa-plus-circle text-accent mt-1 mr-2"></i>
+                            <span>收集更多维度数据，提高预测模型准确性</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-plus-circle text-accent mt-1 mr-2"></i>
+                            <span>开发实时事故风险预警系统</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-plus-circle text-accent mt-1 mr-2"></i>
+                            <span>分析事故处理响应时间对伤亡程度的影响</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-plus-circle text-accent mt-1 mr-2"></i>
+                            <span>评估安全措施实施效果并持续优化</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-plus-circle text-accent mt-1 mr-2"></i>
+                            <span>扩大分析范围，纳入更多地区数据</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">交通事故事件分析仪表盘</h3>
+                    <p class="text-gray-400 text-sm">基于数据分析的交通事故预测与预防决策支持系统</p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-400 uppercase mb-4">快速链接</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#overview" class="text-gray-400 hover:text-white">概览</a></li>
+                        <li><a href="#severity" class="text-gray-400 hover:text-white">严重程度分析</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white">特征重要性</a></li>
+                        <li><a href="#clustering" class="text-gray-400 hover:text-white">聚类分析</a></li>
+                        <li><a href="#conclusion" class="text-gray-400 hover:text-white">结论与建议</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-400 uppercase mb-4">相关资源</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-400 hover:text-white">交通管理政策</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">安全驾驶指南</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">事故统计报告</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">数据分析文档</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-400 uppercase mb-4">联系我们</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope-o text-gray-400 mr-2"></i>
+                            <a href="mailto:traffic-analysis@example.com" class="text-gray-400 hover:text-white">traffic-analysis@example.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-gray-400 mr-2"></i>
+                            <span class="text-gray-400">+86 123 4567 8901</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-map-marker text-gray-400 mr-2"></i>
+                            <span class="text-gray-400">中国，北京市，交通管理局</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
+                <p>© 2025 交通事故事件分析系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-md');
+                navbar.classList.add('bg-white/95');
+                navbar.classList.add('backdrop-blur-sm');
+            } else {
+                navbar.classList.remove('shadow-md');
+                navbar.classList.remove('bg-white/95');
+                navbar.classList.remove('backdrop-blur-sm');
+            }
+        });
+
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+
+                    // 关闭移动端菜单
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+
+        // 图表数据和配置
+        document.addEventListener('DOMContentLoaded', function() {
+            // 事故严重程度分布饼图
+            const severityDistributionCtx = document.getElementById('severityDistributionChart').getContext('2d');
+            new Chart(severityDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['轻微', '中等', '严重', '致命'],
+                    datasets: [{
+                        data: [45, 30, 15, 10],
+                        backgroundColor: [
+                            '#0FC6C2',
+                            '#165DFF',
+                            '#FF7D00',
+                            '#F53F3F'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 事故时间分布
+            const timeDistributionCtx = document.getElementById('timeDistributionChart').getContext('2d');
+            new Chart(timeDistributionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                    datasets: [{
+                        label: '事故数量',
+                        data: [280, 150, 320, 850, 620, 580, 920, 680],
+                        backgroundColor: '#165DFF',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            },
+                            ticks: {
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 多分类模型特征重要性
+            const multiclassFeatureImportanceCtx = document.getElementById('multiclassFeatureImportanceChart').getContext('2d');
+            new Chart(multiclassFeatureImportanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['车辆速度', '道路类型', '天气状况', '交通密度', '时间因素', '路口类型', '能见度', '驾驶员年龄', '车辆类型', '照明条件'],
+                    datasets: [{
+                        label: '重要性',
+                        data: [0.28, 0.18, 0.15, 0.12, 0.09, 0.07, 0.05, 0.03, 0.02, 0.01],
+                        backgroundColor: '#165DFF',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 二分类模型特征重要性
+            const binaryFeatureImportanceCtx = document.getElementById('binaryFeatureImportanceChart').getContext('2d');
+            new Chart(binaryFeatureImportanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['车辆速度', '交通密度', '道路类型', '能见度', '天气状况', '路口类型', '时间因素', '车辆类型', '照明条件', '驾驶员经验'],
+                    datasets: [{
+                        label: '重要性',
+                        data: [0.32, 0.18, 0.15, 0.10, 0.09, 0.06, 0.05, 0.03, 0.01, 0.01],
+                        backgroundColor: '#0FC6C2',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 聚类分布
+            const clusterDistributionCtx = document.getElementById('clusterDistributionChart').getContext('2d');
+            new Chart(clusterDistributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['聚类 1', '聚类 2', '聚类 3'],
+                    datasets: [{
+                        data: [45, 30, 25],
+                        backgroundColor: [
+                            '#165DFF',
+                            '#0FC6C2',
+                            '#FF7D00'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // 聚类散点图
+            const clusterScatterCtx = document.getElementById('clusterScatterChart').getContext('2d');
+
+            // 生成模拟聚类数据
+            function generateClusterData(centerX, centerY, points, spread, color) {
+                const data = [];
+                for (let i = 0; i < points; i++) {
+                    const x = centerX + (Math.random() - 0.5) * 2 * spread;
+                    const y = centerY + (Math.random() - 0.5) * 2 * spread;
+                    data.push({ x, y, r: 5, color });
+                }
+                return data;
+            }
+
+            const cluster1Data = generateClusterData(0.5, 0.8, 150, 0.2, '#165DFF');
+            const cluster2Data = generateClusterData(-0.7, -0.5, 100, 0.15, '#0FC6C2');
+            const cluster3Data = generateClusterData(0.8, -0.6, 120, 0.25, '#FF7D00');
+
+            // 聚类中心
+            const centers = [
+                { x: 0.5, y: 0.8, r: 12 },
+                { x: -0.7, y: -0.5, r: 12 },
+                { x: 0.8, y: -0.6, r: 12 }
+            ];
+
+            new Chart(clusterScatterCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: '聚类 1',
+                            data: cluster1Data,
+                            backgroundColor: '#165DFF',
+                            borderColor: '#165DFF',
+                            borderWidth: 1,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '聚类 2',
+                            data: cluster2Data,
+                            backgroundColor: '#0FC6C2',
+                            borderColor: '#0FC6C2',
+                            borderWidth: 1,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '聚类 3',
+                            data: cluster3Data,
+                            backgroundColor: '#FF7D00',
+                            borderColor: '#FF7D00',
+                            borderWidth: 1,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '聚类中心',
+                            data: centers,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: 'rgba(0, 0, 0, 0.8)',
+                            borderWidth: 1,
+                            pointRadius: 8,
+                            pointHoverRadius: 10,
+                            pointStyle: 'cross'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'center',
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            },
+                            ticks: {
+                                display: true,
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'center',
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                color: '#f0f0f0'
+                            },
+                            ticks: {
+                                display: true,
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
